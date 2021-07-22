@@ -1,0 +1,234 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <graphics.h>		// 引用 EasyX 绘图库头文件
+#include <Windows.h>
+#include <time.h>
+#include <conio.h>
+#include<mmsystem.h>
+#pragma comment(lib,"Winmm.lib")
+
+#define SNAKE_NUM 500
+
+int gs = 0;
+int sd = 0;
+
+enum DIR
+{
+	UP,
+	DOWN,
+	LIFE,
+	RIGHT,
+};
+
+struct Snake
+{
+	int size;
+	int dir;
+	int speed;
+	POINT coor[SNAKE_NUM];
+}snake;
+
+struct food
+{
+	int x;
+	int y;
+	int r;
+	bool flag;
+	DWORD color;
+}food;
+
+void huatu()
+{
+	mciSendString("open D:\\c++\\snake\\tcs.mp3 alias bkmusic", 0, 0, 0);
+	mciSendString("play bkmusic repeat", 0, 0, 0); 
+	food.x = rand() % 640;
+	food.y = rand() % 480;
+	food.color = RGB(rand() %256, rand() %256, rand() %256);
+	food.r = 10;
+	food.flag = true;
+	srand(GetTickCount());
+	int i;
+	initgraph(640,480); //画图
+	snake.size = 3;
+	snake.speed = 10;
+	snake.dir = RIGHT;
+	
+	for (i = 0; i < snake.size; i++)  //定义蛇的身体位置
+	{	snake.coor[i].x = 40-10*i;
+		snake.coor[i].y = 10;
+	}
+	
+
+}
+
+void beijing()
+{
+
+	BeginBatchDraw();
+	int i;
+	char s[5];
+	char str[] = {"分数:"}; //设置分数
+	sprintf(s, "%d", gs); 
+	setbkcolor(RGB(28,115,118));  // 背景颜色
+	cleardevice();
+	settextcolor(RGB(255,255,255));
+	outtextxy(10, 10, str);
+	setfillcolor(GREEN);
+	for (i = 0; i < snake.size; i++)  //画出蛇的身体
+	{
+		solidcircle(snake.coor[i].x, snake.coor[i].y, 5);
+	}
+	setfillcolor(food.color); //果实的颜色
+	if (food.flag) //画出果实
+	{
+		solidcircle(food.x, food.y, 10);
+		outtextxy(50, 10, s);
+	}
+	
+	EndBatchDraw();
+}
+
+void snakeMove()
+{
+	int i;
+		
+	for (i = snake.size - 1; i > 0; i--)
+	{
+		snake.coor[i] = snake.coor[i - 1];
+			
+	}
+
+	switch(snake.dir)
+	{
+		case UP:
+			snake.coor[0].y-=10;
+			if (snake.coor[0].y <= 0)
+			{
+				snake.coor[0].y = 480;
+			}
+			break;
+		case DOWN:
+			if (snake.coor[0].y >= 480)
+			{
+				snake.coor[0].y = 0;
+			}
+			snake.coor[0].y+=10;
+			break;
+		case LIFE:
+			if (snake.coor[0].x <= 0)
+			{
+				snake.coor[0].x = 640;
+			}
+			snake.coor[0].x-=10;
+			break;
+		case RIGHT:
+			if (snake.coor[0].x >= 640)
+			{
+				snake.coor[0].x = 0;
+			}
+			snake.coor[0].x+=10;
+			break;
+	}
+}
+
+void keyControl()
+{
+	if (kbhit())
+	{
+		
+		switch(_getch())
+		{
+			case 'w':
+			case 'W':
+				if (snake.dir != DOWN)
+				snake.dir = UP;
+				break;
+			case 's':
+			case 'S':
+				if (snake.dir != UP)
+				snake.dir = DOWN;
+				break;
+			case 'a':
+			case 'A':
+				if (snake.dir != RIGHT)
+				snake.dir = LIFE;
+				break;
+			case 'd':
+			case 'D':
+				if (snake.dir != LIFE)
+				snake.dir = RIGHT;
+				break;
+			case ' ':
+				while(1)
+				{
+					if(getch() == ' ')
+						break;
+				}
+				break;
+		}
+	}
+
+}
+
+void Eatfood()
+{
+	if ((snake.coor[0].x <= food.x+food.r && snake.coor[0].x >= food.x-food.r) &&
+		(snake.coor[0].y <= food.y+food.r && snake.coor[0].y >= food.y-food.r))
+	{
+		food.flag = false;
+		snake.size++;
+		gs++;
+	}
+	if(food.flag == false)
+	{
+		printf("\a");
+		food.x = rand() % 640;
+		food.y = rand() % 480;
+		food.color = RGB(rand() %256, rand() %256, rand() %256);
+		food.r = 10;
+		food.flag = true;
+	}
+}
+
+void print()
+{
+	int i;
+	printf("-----------------欢迎来到贪吃蛇游戏--------------------\n");
+	printf("有以下难度选择:\n");
+	printf("1:简单\n");
+	printf("2:困难\n");
+	printf("3:噩梦\n");
+	printf("(空格暂停游戏)\n");
+	printf("请选择(输入数字1，2，3):\n");
+	scanf("%d",&i);
+	switch(i)
+	{
+		case 1:
+			sd = 50;
+			break;
+		case 2:
+			sd = 40;
+			break;
+		case 3:
+			sd = 20;
+			break;
+	}
+
+}
+
+void main()
+{
+	print();
+	huatu();
+	while(1)
+	{
+		
+		beijing();
+		keyControl();
+		Eatfood();
+		snakeMove();
+		Sleep(sd);
+	}
+}
+
+
